@@ -26,11 +26,16 @@
  * @return Does not return; exits the program.
  */
 int error(int exitCode, const char *format, ...) {
+	// Retrieve additional arguments
 	va_list args;
 	va_start(args, format);
-	fprintf(stderr, "Server error: ");
+	
+	// Print error to stderr
+	fprintf(stderr, "Client error: ");
 	vfprintf(stderr, format, args);
 	fprintf(stderr, "\n");
+	
+	// End var arg list & exit
 	va_end(args);
 	exit(exitCode);
 }
@@ -46,10 +51,13 @@ int error(int exitCode, const char *format, ...) {
 void setupAddressStruct(struct sockaddr_in* address, int portNumber){
 	// Clear out the address struct
 	memset((char*) address, '\0', sizeof(*address));
+	
 	// The address should be network capable
 	address->sin_family = AF_INET;
+	
 	// Store the port number
 	address->sin_port = htons(portNumber);
+	
 	// Allow a client at any address to connect to this server
 	address->sin_addr.s_addr = INADDR_ANY;
 }
@@ -124,14 +132,19 @@ char* receive(int sock) {
  * @post The socket will be closed if the server's response is not "enc"
 */
 void validate(int sock) {
+	// Init client/server validation vars
 	char client[4], server[4] = "enc";
 	memset(client, '\0', sizeof(client));
+	
+	// Recieve validation from client
 	if (recv(sock, client, sizeof(client), 0) < 0)
 		error(1, "Unable to read from socket");
 	
+	// Send validation to client
 	if (send(sock, server, sizeof(server), 0) < 0)
 		error(1, "Unable to write to socket");
 	
+	// Check client validation
 	if (strcmp(client, server)) {
 		close(sock);
 		error(2, "Client not enc_client");
