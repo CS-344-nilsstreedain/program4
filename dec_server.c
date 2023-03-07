@@ -177,7 +177,7 @@ void handleOtpComm(int sock) {
 	// Send decryted text back, free data & close socket
 	sendData(sock, result);
 	free(result);
-	free(text);
+	free(enc);
 	free(key);
 	close(sock);
 }
@@ -200,7 +200,7 @@ int main(int argc, const char * argv[]) {
 	int listenSock = socket(AF_INET, SOCK_STREAM, 0);
 	if (listenSock < 0)
 		error(1, "Unable to open socket");
-	
+
 	// Set up the address struct for the server socket
 	struct sockaddr_in server, client;
 	socklen_t clientSize = sizeof(client);
@@ -235,7 +235,7 @@ int main(int argc, const char * argv[]) {
 				close(sock);
 		}
 	}
-	
+
 	// Close the listening socket
 	close(listenSock);
 	return 0;
