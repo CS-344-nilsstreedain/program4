@@ -222,13 +222,16 @@ int main(int argc, const char * argv[]) {
 		int pid = fork();
 		switch (pid) {
 			case -1:
+				// Fork error
 				error(1, "Unable to fork child");
 				break;
 			case 0:
+				// Child case
 				validate(sock);
 				handleOtpComm(sock);
 				exit(0);
 			default:
+				// Parent case
 				close(sock);
 		}
 	}
