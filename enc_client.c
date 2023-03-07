@@ -29,11 +29,16 @@
  * @return Does not return; exits the program.
  */
 int error(int exitCode, const char *format, ...) {
+	// Retrieve additional arguments
 	va_list args;
 	va_start(args, format);
+	
+	// Print error to stderr
 	fprintf(stderr, "Client error: ");
 	vfprintf(stderr, format, args);
 	fprintf(stderr, "\n");
+	
+	// End var arg list & exit
 	va_end(args);
 	exit(exitCode);
 }
@@ -50,14 +55,18 @@ int error(int exitCode, const char *format, ...) {
 void setupAddressStruct(struct sockaddr_in* address, int portNumber, char* hostname){
 	// Clear out the address struct
 	memset((char*) address, '\0', sizeof(*address));
+	
 	// The address should be network capable
 	address->sin_family = AF_INET;
+	
 	// Store the port number
 	address->sin_port = htons(portNumber);
+	
 	// Get the DNS entry for this host name
 	struct hostent* hostInfo = gethostbyname(hostname);
 	if (hostInfo == NULL)
 		error(0, "No such host\n");
+	
 	// Copy the first IP address from the DNS entry to sin_addr.s_addr
 	memcpy((char*) &address->sin_addr.s_addr, hostInfo->h_addr_list[0], hostInfo->h_length);
 }
@@ -132,14 +141,19 @@ char* receive(int sock) {
  * @post The socket will be closed if the server's response is not "enc"
 */
 void validate(int sock) {
+	// Init client/server validation vars
 	char client[4] = "enc", server[4];
 	memset(server, '\0', sizeof(server));
+	
+	// Send validation to server
 	if (send(sock, client, sizeof(client), 0) < 0)
 		error(1, "Unable to write to socket");
 	
+	// Recieve validation from server
 	if (recv(sock, server, sizeof(server), 0) < 0)
 		error(1, "Unable to read from socket");
 	
+	// Check server validation
 	if (strcmp(client, server)) {
 		close(sock);
 		error(2, "Server not enc_server");
@@ -157,22 +171,27 @@ void validate(int sock) {
  * @return A pointer to a null-terminated string containing the contents of the file, or NULL on error.
  */
 char* stringFromFile(char* path) {
+	// Open file at path
 	FILE* file = fopen(path, "r");
 	if (!file)
 		error(0, "Unable to open file: %s", path);
 	
+	// Seek file to get sieze (len)
 	fseek(file, 0, SEEK_END);
 	size_t len = ftell(file) - 1;
 	fseek(file, 0, SEEK_SET);
 	
+	// Create buffer, error of unable
 	char* buffer = (char*) malloc(len + 1);
 	if (!buffer) {
 		fclose(file);
 		error(0, "Unable to allocate memory");
 	}
 	
+	// Copy file contents to buffer
 	for (int i = 0; i < len; i++) {
 		char c = fgetc(file);
+		// Error if invalid char found
 		if ((c < 'A' || c > 'Z') && c != ' ') {
 			free(buffer);
 			fclose(file);
@@ -181,6 +200,8 @@ char* stringFromFile(char* path) {
 		buffer[i] = c;
 	}
 	buffer[len] = '\0';
+	
+	// Close file & return string
 	fclose(file);
 	return buffer;
 }

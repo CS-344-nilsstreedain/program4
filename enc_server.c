@@ -159,10 +159,13 @@ void validate(int sock) {
  * @param sock The socket to use for communication.
 */
 void handleOtpComm(int sock) {
+	// Init dec vars
 	char* text = receive(sock);
 	char* key = receive(sock);
 	int len = (int)strlen(text);
 	char* result = (char*) malloc(len + 1);
+	
+	// Perform decryption
 	for (int i = 0; i < len; i++) {
 		int txtVal = text[i] == ' ' ? 26 : text[i] - 'A';
 		int keyVal = key[i] == ' ' ? 26 : key[i] - 'A';
@@ -171,6 +174,7 @@ void handleOtpComm(int sock) {
 	}
 	result[len] = '\0';
 	
+	// Send decryted text back, free data & close socket
 	sendData(sock, result);
 	free(result);
 	free(text);
